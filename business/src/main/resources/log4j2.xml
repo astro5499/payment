@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} %L - %msg%n"/>
+        </Console>
+
+        <RollingRandomAccessFile name="LogToRollingRandomAccessFile"
+                                 fileName="../logs/service-process-reconcile-online.log"
+                                 filePattern="../logs/ewallet/$${date:yyyy-MM}/$${date:yyyy-MM-dd}/%d{yyyy-MM-dd}-service-process-reconcile-online-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10000"/>
+        </RollingRandomAccessFile>
+
+    </Appenders>
+    <Loggers>
+        <Logger name="com.viettel" level="debug" additivity="false">
+            <AppenderRef ref="LogToRollingRandomAccessFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Logger name="org.springframework.boot" level="error" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="LogToRollingRandomAccessFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>

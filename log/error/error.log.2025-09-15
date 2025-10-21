@@ -1,0 +1,23 @@
+15/09/2025 16:57:34.662  WARN [NioProcessor-2] SocketHandler: 113 - --------------------------------------------
+15/09/2025 16:57:34.663  WARN [NioProcessor-2] SocketHandler: 116 - ------VERIFY MESSAGE SIGNATURE NOT OK-------
+15/09/2025 16:57:34.663  WARN [NioProcessor-2] SocketHandler: 117 - --------------------------------------------
+15/09/2025 17:03:15.403  WARN [NioProcessor-2] SocketHandler: 113 - --------------------------------------------
+15/09/2025 17:03:15.404  WARN [NioProcessor-2] SocketHandler: 116 - ------VERIFY MESSAGE SIGNATURE NOT OK-------
+15/09/2025 17:03:15.404  WARN [NioProcessor-2] SocketHandler: 117 - --------------------------------------------
+15/09/2025 17:13:25.253  WARN [NioProcessor-36] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757970805250333
+15/09/2025 17:13:25.344  WARN [NioProcessor-2] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757970805340333
+15/09/2025 17:20:26.285  WARN [NioProcessor-2] SocketHandler: 113 - --------------------------------------------
+15/09/2025 17:20:26.285  WARN [NioProcessor-2] SocketHandler: 116 - ------VERIFY MESSAGE SIGNATURE NOT OK-------
+15/09/2025 17:20:26.285  WARN [NioProcessor-2] SocketHandler: 117 - --------------------------------------------
+15/09/2025 17:45:20.688  WARN [NioProcessor-2] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757972720682333
+15/09/2025 17:45:20.699  WARN [NioProcessor-36] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757972720696333
+15/09/2025 17:50:21.659  WARN [NioProcessor-2] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757973021655333
+15/09/2025 17:50:21.688  WARN [NioProcessor-36] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757973021685333
+15/09/2025 17:55:22.574  WARN [NioProcessor-36] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757973322565333
+15/09/2025 17:55:22.575  WARN [NioProcessor-2] SocketHandler: 95 - Can get connector to reset timeout with requestId: 1757973322565333
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[1]] 171:7320)[1]: 66 - ******************************************
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[0]] 171:7320)[0]: 66 - ******************************************
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[0]] 171:7320)[0]: 67 - COREAPP(10.228.37.171:7320)[0] - This TCP connector now NOK, reconect....
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[1]] 171:7320)[1]: 67 - COREAPP(10.228.37.171:7320)[1] - This TCP connector now NOK, reconect....
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[0]] 171:7320)[0]: 68 - ******************************************
+15/09/2025 19:31:03.774  WARN [COREAPP(10.228.37.171:7320)[1]] 171:7320)[1]: 68 - ******************************************

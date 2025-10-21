@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database>
+    <url>jdbc:postgresql://186.1.198.147:5432/n8n_db</url>
+    <username>transfer_user</username>
+    <password>Transfer@123</password>
+    <driverClassName>org.postgresql.Driver</driverClassName>
+</database>
