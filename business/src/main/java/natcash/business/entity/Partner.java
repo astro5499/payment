@@ -28,36 +28,7 @@ public class Partner {
     @Column(name = "status")
     private Integer status;
 
-	public Long getPartnerId() {
-		return partnerId;
-	}
-
-	public void setPartnerId(Long partnerId) {
-		this.partnerId = partnerId;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Integer getStatus() {
-		return status;
-	}
-
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
+	@Column(name = "ip")
+	private String ip;
     
 }

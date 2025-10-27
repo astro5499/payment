@@ -100,8 +100,11 @@ public enum ErrorCode {
 	  ERR_WRONG_PHONE_NOT_EKYC(4, "ERR_WRONG_PHONE_NOT_EKYC", "The phone number is not ekyc. Please try again later."),
 	  ERR_PHONE_NOT_HAVE_IMAGE(4, "ERR_PHONE_NOT_HAVE_IMAGE", "The phone number is not Ekyc. Please Ekyc to use Ewallet service."),
 	  ERR_LOGIN_ACCOUNT_RESET_PIN(2, "ERR_LOGIN_ACCOUNT_RESET_PIN", "Please dial *202# to setup the new PIN."),
-	  ERR_PHONE_ALREADY_CANCELING(2, "ERR_PHONE_ALREADY_CANCELING", "Your request is being processed");
-	  
+	  ERR_PHONE_ALREADY_CANCELING(2, "ERR_PHONE_ALREADY_CANCELING", "Your request is being processed"),
+	  ERR_PARTNER_REQUEST_ORDER_ALREADY_EXIST(2, "ERR_PARTNER_REQUEST_ORDER_ALREADY_EXIST", "Request id or order number is already existed"),
+	  ERR_PARTNER_IP_NOT_VALID(2, "ERR_PARTNER_IP_NOT_VALID", "Your ip is not valid"),
+	  ERR_SYSTEM_BUSY(2, "ERR_SYSTEM_BUSY", "System is busy, please contact admin");
+
 	  private final int status;
 	  
 	  private final String code;

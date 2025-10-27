@@ -23,7 +23,7 @@ public class PaymentController {
 	@PostMapping("/init-payment")
 	public ResponseEntity<Map<String, String>> initPayment(@RequestBody Map<String, Object> request) {
 		Double amount = Double.valueOf(request.get("amount").toString());
-		String orderId = paymentService.createTransaction(amount);
+		String orderId = "test";
 		Map<String, String> response = new HashMap<>();
 		response.put("orderId", orderId);
 		response.put("webViewUrl", "http://localhost:3000/payment?orderId=" + orderId);

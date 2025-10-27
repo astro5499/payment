@@ -1,6 +1,7 @@
 package natcash.business.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import javax.persistence.*;
 
 import lombok.Data;
@@ -25,6 +26,9 @@ public class TransactionLog {
 
     @Column(name = "amount")
     private Double amount;
+
+	@Column(name = "payment_id")
+	private UUID paymentId;
 
     @Column(name = "timestamp")
     private Long timestamp;

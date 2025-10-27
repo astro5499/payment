@@ -1,27 +1,14 @@
 package natcash.business.service;
 
-import org.springframework.stereotype.Service;
+import natcash.business.dto.request.PaymentRequestDTO;
+import natcash.business.dto.response.PaymentResponseDTO;
+import natcash.business.entity.Payment;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.UUID;
+public interface PaymentService {
 
-@Service
-public class PaymentService {
+    Payment createPayment(PaymentRequestDTO requestDTO, String finAccount);
 
-    private final Map<String, String> orderStatus = new ConcurrentHashMap<>();
+    void updateTransaction(String orderId, String status);
 
-    public String createTransaction(Double amount) {
-        String orderId = "ORD-" + System.currentTimeMillis();
-        orderStatus.put(orderId, "PENDING");
-        return orderId;
-    }
-
-    public void updateTransaction(String orderId, String status) {
-        orderStatus.put(orderId, status);
-    }
-
-    public String checkPaymentStatus(String orderId) {
-        return orderStatus.getOrDefault(orderId, "NOT_FOUND");
-    }
+    String checkPaymentStatus(String orderId);
 }
