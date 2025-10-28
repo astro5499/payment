@@ -1,7 +1,8 @@
 package natcash.business.utils;
 
 import natcash.business.dto.request.PaymentRequestDTO;
-import natcash.business.entity.Payment;
+import natcash.business.dto.response.PaymentResponseDTO;
+import natcash.business.dto.response.RequestResponseDTO;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -9,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.UUID;
 
 public class PaymentUtils {
 
@@ -19,14 +21,9 @@ public class PaymentUtils {
         return calculateHMac(key, concatenationBase64);
     }
 
-    public static String getUrl(Payment payment, String baseUrl) {
+    public static String getUrl(String baseUrl, UUID paymentId) {
         try{
-        String url = String.format(baseUrl,
-                URLEncoder.encode(payment.getToAccount(), StandardCharsets.UTF_8.toString()),
-                URLEncoder.encode(payment.getAmount().toString(), StandardCharsets.UTF_8.toString()),
-                URLEncoder.encode(payment.getOrderId(), StandardCharsets.UTF_8.toString())
-        );
-        return url;
+            return String.format(baseUrl,URLEncoder.encode(paymentId.toString(), StandardCharsets.UTF_8.toString()));
     } catch (UnsupportedEncodingException e) {
         throw new RuntimeException("Error encoding callback URL", e);
     }
@@ -49,5 +46,24 @@ public class PaymentUtils {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    public static PaymentResponseDTO buildPaymentResponse(String status, String code, String message, String url, Long expiredAt) {
+        PaymentResponseDTO responseDTO = new PaymentResponseDTO();
+        responseDTO.setStatus(status);
+        responseDTO.setCode(code);
+        responseDTO.setMessage(message);
+        responseDTO.setUrl(url);
+        responseDTO.setExpiredAt(expiredAt);
+
+        return responseDTO;
+    }
+
+    public static RequestResponseDTO buildPaymentResponse(ErrorCode errorCode, String message) {
+        RequestResponseDTO responseDTO = new RequestResponseDTO();
+        responseDTO.setCode(errorCode.code());
+        responseDTO.setStatus(String.valueOf(errorCode.status()));
+        responseDTO.setMessage(message);
+        return responseDTO;
     }
 }

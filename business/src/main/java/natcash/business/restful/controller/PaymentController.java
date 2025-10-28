@@ -1,5 +1,6 @@
 package natcash.business.restful.controller;
 
+import natcash.business.dto.response.PaymentDetailResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -9,10 +10,11 @@ import natcash.business.service.PaymentService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/api")
+@RequestMapping("/payment")
 public class PaymentController {
 
 	@Autowired
@@ -38,5 +40,10 @@ public class PaymentController {
 	    messagingTemplate.convertAndSend("/topic/payment-status-" + orderId, "SUCCESS");
 
 	    return ResponseEntity.ok("Payment confirmed for " + orderId);
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<PaymentDetailResponse> getPaymentDetails(@PathVariable String id) {
+		return ResponseEntity.ok(paymentService.findPaymentById(UUID.fromString(id)));
 	}
 }

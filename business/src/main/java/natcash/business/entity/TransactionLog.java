@@ -51,6 +51,9 @@ public class TransactionLog {
     @Column(name = "response_payload", columnDefinition = "TEXT")
     private String responsePayload; // JSON response trả về (để theo dõi phản hồi)
 
+	@Column(name = "action")
+	private String action;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 

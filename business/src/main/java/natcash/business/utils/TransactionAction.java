@@ -3,13 +3,13 @@ package natcash.business.utils;
 import lombok.Getter;
 
 @Getter
-public enum PaymentStatus {
+public enum TransactionAction {
 
-    PENDING("PENDING"), SUCCESS("SUCCESS"), EXPIRED("EXPIRED");
+    INIT("INIT"), CONFIRM("CONFIRM"), EXPIRED("EXPIRED");
 
     private final String value;
 
-    PaymentStatus(String value) {
+    TransactionAction(String value) {
         this.value = value;
     }
 }

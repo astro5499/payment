@@ -1,107 +1,70 @@
 package natcash.business.restful.controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
-import natcash.business.entity.Partner;
-import natcash.business.entity.TransactionLog;
-import natcash.business.repository.PartnerRepository;
-import natcash.business.repository.TransactionLogRepository;
-import natcash.business.restful.models.InitPayment;
-import org.springframework.http.HttpStatus;
+import lombok.extern.log4j.Log4j2;
+import natcash.business.dto.request.PaymentRequestDTO;
+import natcash.business.dto.response.PaymentResponseDTO;
+import natcash.business.dto.response.RequestResponseDTO;
+import natcash.business.service.PartnerService;
+import natcash.business.service.TransactionLogService;
+import natcash.business.utils.ErrorCode;
+import natcash.business.utils.PaymentUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.UUID;
+
+@Log4j2
 @RestController
 @RequestMapping("/partners")
 @RequiredArgsConstructor
 public class PartnerController {
 
-    private final PartnerRepository partnerRepository;
-
-    private final TransactionLogRepository transactionLogRepository;
+    private final PartnerService partnerService;
+    private final TransactionLogService transactionLogService;
 
     @PostMapping("/init")
-    public ResponseEntity<?> initPayment(@RequestBody InitPayment request) {
-        TransactionLog log = new TransactionLog();
-        log.setRequestId(request.getRequestId());
-        log.setOrderId(request.getOrderId());
-        log.setUsername(request.getUsername());
-        log.setAmount(request.getAmount());
-        log.setTimestamp(request.getTimestamp());
-        log.setSignature(request.getSignature());
-        log.setCallbackUrl(request.getCallbackUrl());
-        log.setStatus("INIT");
-
-        String responseMessage = "";
-        HttpStatus responseStatus = HttpStatus.OK;
+    public ResponseEntity<PaymentResponseDTO> initPayment(@RequestBody PaymentRequestDTO request, HttpServletRequest httpServletRequest) throws JsonProcessingException {
 
         try {
-            // 1. Check partner
-            Partner partner = partnerRepository.findByUsername(request.getUsername());
-            if (partner == null) {
-                responseMessage = "Invalid partner username";
-                responseStatus = HttpStatus.BAD_REQUEST;
-                log.setStatus("FAILED");
-                log.setErrorDesc(responseMessage);
-                return ResponseEntity.status(responseStatus).body(responseMessage);
-            }
-
-            // 2. Verify signature
-            String dataToSign = request.getRequestId() + request.getUsername() +
-                                request.getAmount() + request.getTimestamp();
-//            String expectedSig = hashSHA256(dataToSign + partner.getPassword());
-//            if (!expectedSig.equals(request.getSignature())) {
-//                responseMessage = "Invalid signature";
-//                responseStatus = HttpStatus.BAD_REQUEST;
-//                log.setStatus("FAILED");
-//                log.setErrorDesc(responseMessage);
-//                return ResponseEntity.status(responseStatus).body(responseMessage);
-//            }
-
-            // 3. Check duplicate requestId
-            if (transactionLogRepository.findByRequestId(request.getRequestId()).isPresent()) {
-                responseMessage = "Duplicate requestId";
-                responseStatus = HttpStatus.BAD_REQUEST;
-                log.setStatus("FAILED");
-                log.setErrorDesc(responseMessage);
-                return ResponseEntity.status(responseStatus).body(responseMessage);
-            }
-
-            // 4. Check duplicate orderId
-            if (transactionLogRepository.findByOrderId(request.getOrderId()).isPresent()) {
-                responseMessage = "Duplicate orderId";
-                responseStatus = HttpStatus.BAD_REQUEST;
-                log.setStatus("FAILED");
-                log.setErrorDesc(responseMessage);
-                return ResponseEntity.status(responseStatus).body(responseMessage);
-            }
-
-            // 5. Nếu không lỗi thì ghi log thành công
-            log.setStatus("SUCCESS");
-            responseMessage = "Transaction initialized successfully";
-            return ResponseEntity.ok(responseMessage);
+            return ResponseEntity.ok(partnerService.initPayment(request, httpServletRequest.getRemoteAddr()));
         } catch (Exception e) {
-            responseMessage = "Exception: " + e.getMessage();
-            responseStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-            log.setStatus("ERROR");
-            log.setErrorDesc(e.getMessage());
-            return ResponseEntity.status(responseStatus).body(responseMessage);
-        } finally {
-            try {
-                // Ghi log chắc chắn, kể cả khi lỗi
-                if (log.getCreatedAt() == null) {
-                    //log.setCreatedAt(new java.util.Date());
-                }
-                if (!transactionLogRepository.findByRequestId(log.getRequestId()).isPresent()) {
-                    transactionLogRepository.save(log);
-                }
-            } catch (Exception ex) {
-                // Nếu log cũng lỗi thì ghi ra console
-                System.err.println("❌ Failed to save transaction log: " + ex.getMessage());
-            }
+            log.error("Unexpected error when init payment: {}", e.getMessage());
+            PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(ErrorCode.ERR_COMMON.status()), ErrorCode.ERR_COMMON.code(), e.getMessage(), null, null);
+            transactionLogService.saveTransactionLog(request, responseDTO, null);
+            return ResponseEntity.ok(responseDTO);
+        }
+    }
+
+    @PostMapping("/confirm/{id}")
+    public ResponseEntity<RequestResponseDTO> confirmPayment(@PathVariable("id") String id) throws JsonProcessingException {
+        try {
+            return ResponseEntity.ok(partnerService.confirmPayment(id));
+        } catch (Exception e) {
+            log.error("Unexpected error when confirm payment: {}", e.getMessage());
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
+            transactionLogService.saveConfirmTransactionLog(responseDTO, id);
+            return ResponseEntity.ok(responseDTO);
+        }
+    }
+
+    @PatchMapping("/expired/{id}")
+    public ResponseEntity<RequestResponseDTO> expiredPayment(@PathVariable String id) throws JsonProcessingException {
+        try {
+            return ResponseEntity.ok(partnerService.expiredPayment(UUID.fromString(id)));
+        } catch (Exception e) {
+            log.error("Unexpected error when expired payment: {}", e.getMessage());
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
+            transactionLogService.saveExpiredTransactionLog(responseDTO, UUID.fromString(id));
+            return ResponseEntity.ok(responseDTO);
         }
     }
 }

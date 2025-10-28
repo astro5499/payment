@@ -103,7 +103,9 @@ public enum ErrorCode {
 	  ERR_PHONE_ALREADY_CANCELING(2, "ERR_PHONE_ALREADY_CANCELING", "Your request is being processed"),
 	  ERR_PARTNER_REQUEST_ORDER_ALREADY_EXIST(2, "ERR_PARTNER_REQUEST_ORDER_ALREADY_EXIST", "Request id or order number is already existed"),
 	  ERR_PARTNER_IP_NOT_VALID(2, "ERR_PARTNER_IP_NOT_VALID", "Your ip is not valid"),
-	  ERR_SYSTEM_BUSY(2, "ERR_SYSTEM_BUSY", "System is busy, please contact admin");
+	  ERR_SYSTEM_BUSY(2, "ERR_SYSTEM_BUSY", "System is busy, please contact admin"),
+	  ERR_PAYMENT_NOT_FOUND(2, "ERR_PAYMENT_NOT_FOUND", "Cannot find any payment with your order id you provided"),
+	ERR_PAYMENT_EXPIRED(2, "ERR_PAYMENT_EXPIRED", "Payment expired");
 
 	  private final int status;
 	  

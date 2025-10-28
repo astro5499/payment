@@ -32,4 +32,7 @@ public class FinAccount {
 
     @Column(name = "currency", nullable = false)
     private String currency = "HTG";
+
+    @Column(name = "qr_code", nullable = false)
+    private String qrCode;
 }

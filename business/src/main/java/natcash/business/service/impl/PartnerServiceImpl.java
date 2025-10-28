@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.PaymentResponseDTO;
+import natcash.business.dto.response.RequestResponseDTO;
 import natcash.business.entity.FinAccount;
 import natcash.business.entity.Partner;
 import natcash.business.entity.Payment;
@@ -13,13 +14,17 @@ import natcash.business.service.PartnerService;
 import natcash.business.service.PaymentService;
 import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
+import natcash.business.utils.PaymentStatus;
 import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +34,7 @@ public class PartnerServiceImpl implements PartnerService {
     private String privateKey;
 
     @Value("${payment.expired_time}")
-    private Integer expiredAt;
+    private Long expiredAt;
 
     @Value("${payment.url}")
     private String url;
@@ -76,25 +81,60 @@ public class PartnerServiceImpl implements PartnerService {
         }
 
         Payment payment = paymentService.createPayment(requestDTO, availableFinAccount.getAccountId());
-        PaymentResponseDTO responseDTO = buildPaymentResponse(String.valueOf(ErrorCode.SUCCESS.status()), ErrorCode.SUCCESS.code(), ErrorCode.SUCCESS.message(), PaymentUtils.getUrl(payment, url), expiredAt);
+        PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(ErrorCode.SUCCESS.status()), ErrorCode.SUCCESS.code(), ErrorCode.SUCCESS.message(), PaymentUtils.getUrl(url, payment.getId()), expiredAt);
         transactionLogService.saveTransactionLog(requestDTO, responseDTO, payment.getId());
 
         return responseDTO;
     }
 
-    private static PaymentResponseDTO buildPaymentResponse(String status, String code, String message, String url, Integer expiredAt) {
-        PaymentResponseDTO responseDTO = new PaymentResponseDTO();
-        responseDTO.setStatus(status);
-        responseDTO.setCode(code);
-        responseDTO.setMessage(message);
-        responseDTO.setUrl(url);
-        responseDTO.setExpiredAt(expiredAt);
+    @Override
+    public RequestResponseDTO confirmPayment(String orderId) throws JsonProcessingException {
+        LocalDateTime current = LocalDateTime.now();
+        Payment payment = paymentService.findPaymentByOrderId(orderId);
+        if (Objects.isNull(payment)) {
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
+            transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+            return responseDTO;
+        }
+
+        LocalDateTime dateTime = payment.getCreatedAt();
+        if (!dateTime.toLocalDate().isEqual(current.toLocalDate()) || Duration.between(dateTime, current).getSeconds() > expiredAt) {
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_EXPIRED, ErrorCode.ERR_PAYMENT_EXPIRED.message());
+            transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+            return responseDTO;
+        }
+
+        RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
+        transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+
+        payment.setStatus(PaymentStatus.SUCCESS.getValue());
+        paymentService.updatePaymentStatus(payment);
+
+        finAccountService.updateFinAccountBalance(payment);
+
+        return responseDTO;
+    }
+
+    @Override
+    public RequestResponseDTO expiredPayment(UUID paymentId) throws JsonProcessingException {
+        Payment payment = paymentService.findById(paymentId);
+        if (Objects.isNull(payment)) {
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
+            transactionLogService.saveExpiredTransactionLog(responseDTO, paymentId);
+            return responseDTO;
+        }
+
+        RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
+        transactionLogService.saveExpiredTransactionLog(responseDTO, paymentId);
+
+        payment.setStatus(PaymentStatus.EXPIRED.getValue());
+        paymentService.updatePaymentStatus(payment);
 
         return responseDTO;
     }
 
     private PaymentResponseDTO handleError(PaymentRequestDTO requestDTO, ErrorCode errorCode) throws JsonProcessingException {
-        PaymentResponseDTO responseDTO = buildPaymentResponse(String.valueOf(errorCode.status()), errorCode.code(), errorCode.message(), null, null);
+        PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(errorCode.status()), errorCode.code(), errorCode.message(), null, null);
         transactionLogService.saveTransactionLog(requestDTO, responseDTO, null);
         return responseDTO;
     }

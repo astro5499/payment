@@ -3,16 +3,12 @@ package natcash.business.dto.response;
 import lombok.Data;
 
 @Data
-public class PaymentResponseDTO {
+public class RequestResponseDTO {
 
     private String status;
 
     private String code;
 
     private String message;
-
-    private String url;
-
-    private Long expiredAt;
 
 }
