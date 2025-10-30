@@ -91,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
     public void expiredPaymentStatus(UUID id) {
         Payment payment = repository.findById(id).orElse(null);
         if (Objects.nonNull(payment)) {
-            payment.setStatus();
+            payment.setStatus(PaymentStatus.EXPIRED.getValue());
         }
     }
 }

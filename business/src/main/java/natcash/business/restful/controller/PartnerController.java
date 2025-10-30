@@ -12,6 +12,7 @@ import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,7 @@ public class PartnerController {
 
     private final PartnerService partnerService;
     private final TransactionLogService transactionLogService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/init")
     public ResponseEntity<PaymentResponseDTO> initPayment(@RequestBody PaymentRequestDTO request, HttpServletRequest httpServletRequest) throws JsonProcessingException {
@@ -47,11 +49,14 @@ public class PartnerController {
     @PostMapping("/confirm/{id}")
     public ResponseEntity<RequestResponseDTO> confirmPayment(@PathVariable("id") String id) throws JsonProcessingException {
         try {
-            return ResponseEntity.ok(partnerService.confirmPayment(id));
+            RequestResponseDTO responseDTO = partnerService.confirmPayment(id);
+            messagingTemplate.convertAndSend("/topic/payment-status-" + id, responseDTO.getCode().equalsIgnoreCase(ErrorCode.SUCCESS.code()) ? "SUCCESS" : "FAILED");
+            return ResponseEntity.ok(responseDTO);
         } catch (Exception e) {
             log.error("Unexpected error when confirm payment: {}", e.getMessage());
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
             transactionLogService.saveConfirmTransactionLog(responseDTO, id);
+            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
             return ResponseEntity.ok(responseDTO);
         }
     }
@@ -59,11 +64,15 @@ public class PartnerController {
     @PatchMapping("/expired/{id}")
     public ResponseEntity<RequestResponseDTO> expiredPayment(@PathVariable String id) throws JsonProcessingException {
         try {
-            return ResponseEntity.ok(partnerService.expiredPayment(UUID.fromString(id)));
+            RequestResponseDTO responseDTO = partnerService.expiredPayment(UUID.fromString(id));
+            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "EXPIRED");
+            return ResponseEntity.ok(responseDTO);
+
         } catch (Exception e) {
             log.error("Unexpected error when expired payment: {}", e.getMessage());
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
             transactionLogService.saveExpiredTransactionLog(responseDTO, UUID.fromString(id));
+            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "EXPIRED");
             return ResponseEntity.ok(responseDTO);
         }
     }

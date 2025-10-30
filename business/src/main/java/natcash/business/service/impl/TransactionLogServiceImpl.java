@@ -11,7 +11,9 @@ import natcash.business.repository.TransactionLogRepository;
 import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.TransactionAction;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.NumberUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -47,17 +49,15 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
     @Override
     public TransactionLog saveConfirmTransactionLog(RequestResponseDTO response, String orderId) throws JsonProcessingException {
-        TransactionLog log;
+        TransactionLog log = new TransactionLog();
         if (ErrorCode.ERR_PAYMENT_NOT_FOUND.code().equalsIgnoreCase(response.getCode())) {
             log = new TransactionLog();
             log.setOrderId(orderId);
-            log.setCreatedAt(LocalDateTime.now());
         } else {
-            log = repository.findFirstByOrderIdOrderByCreatedAtDesc(orderId);
-            log.setId(null);
-            log.setCreatedAt(LocalDateTime.now());
+            TransactionLog existedPayment =repository.findFirstByOrderIdOrderByCreatedAtDesc(orderId);
+            BeanUtils.copyProperties(existedPayment, log, "id");
         }
-
+        log.setCreatedAt(LocalDateTime.now());
         log.setStatus(response.getStatus());
         log.setErrorDesc(ErrorCode.SUCCESS.code().equals(response.getCode()) ? null : response.getMessage());
         log.setRequestPayload(orderId);
@@ -70,15 +70,13 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
     @Override
     public TransactionLog saveExpiredTransactionLog(RequestResponseDTO response, UUID paymentId) throws JsonProcessingException {
-        TransactionLog log;
+        TransactionLog log = new TransactionLog();
         if (ErrorCode.ERR_PAYMENT_NOT_FOUND.code().equalsIgnoreCase(response.getCode())) {
-            log = new TransactionLog();
             log.setPaymentId(paymentId);
-            log.setCreatedAt(LocalDateTime.now());
+        } else {
+            TransactionLog existedPayment = repository.findFirstByPaymentIdOrderByCreatedAtDesc(paymentId);
+            BeanUtils.copyProperties(existedPayment, log, "id");
         }
-
-        log = repository.findFirstByPaymentIdOrderByCreatedAtDesc(paymentId);
-        log.setId(null);
         log.setCreatedAt(LocalDateTime.now());
         log.setStatus(response.getStatus());
         log.setErrorDesc(ErrorCode.SUCCESS.code().equals(response.getCode()) ? null : response.getMessage());
@@ -92,6 +90,6 @@ public class TransactionLogServiceImpl implements TransactionLogService {
 
     @Override
     public boolean isExistsByRequestIdOrOrderId(String requestId, String orderId) {
-        return repository.existsByRequestIdOrOrderId(requestId, orderId);
+        return repository.existsByRequestIdAndOrderIdAndStatus(requestId, orderId, String.valueOf(ErrorCode.SUCCESS.status()));
     }
 }

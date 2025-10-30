@@ -1,7 +1,6 @@
 package natcash.business.restful.models;
 
-import com.viettel.ewallet.utils.iso.msg.IsoObject;
-import ht.com.natcash.utils.enums.CurrencyCode;
+import natcash.business.utils.CurrencyCode;
 
 public class AccountInfo {
 	private String accountId;
@@ -23,16 +22,6 @@ public class AccountInfo {
 	private String roleId;
 
 	public AccountInfo() {
-	}
-
-	public AccountInfo(IsoObject isoReceiver) {
-		try {
-			this.accountId = isoReceiver.getToAccountID();
-			this.accountNumber = isoReceiver.getToPhone();
-			this.accountName = isoReceiver.getToName();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
 	}
 
 	public String getAccountCode() {

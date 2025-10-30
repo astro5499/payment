@@ -27,9 +27,6 @@ public class FinAccount {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "bank_name", nullable = false)
-    private String bankName;
-
     @Column(name = "currency", nullable = false)
     private String currency = "HTG";
 
