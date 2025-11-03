@@ -21,4 +21,6 @@ public class PaymentDetailResponse {
     private String qrCode;
 
     private Long expiredTime;
+
+    private String status;
 }

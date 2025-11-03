@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -68,7 +67,10 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentDetailResponse findPaymentById(UUID id) {
         PaymentDetailResponse paymentDetailResponse = new PaymentDetailResponse();
         Payment payment = repository.findById(id).orElse(null);
+
         if (Objects.nonNull(payment)) {
+            LocalDateTime dateTime = payment.getCreatedAt();
+
             FinAccount finAccount = finAccountService.findFinAccountById(payment.getToAccount());
 
             paymentDetailResponse.setPaymentId(payment.getId());
@@ -76,8 +78,9 @@ public class PaymentServiceImpl implements PaymentService {
             paymentDetailResponse.setAccountId(payment.getToAccount());
             paymentDetailResponse.setOrderId(payment.getOrderId());
             paymentDetailResponse.setQrCode(finAccount.getQrCode());
-            paymentDetailResponse.setCreatedAt(payment.getCreatedAt());
+            paymentDetailResponse.setCreatedAt(dateTime);
             paymentDetailResponse.setExpiredTime(timeToLive);
+            paymentDetailResponse.setStatus(payment.getStatus());
         }
         return paymentDetailResponse;
     }
