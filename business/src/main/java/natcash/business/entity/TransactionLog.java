@@ -60,6 +60,9 @@ public class TransactionLog {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "trans_code")
+    private String transCode;
+
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
@@ -73,7 +76,31 @@ public class TransactionLog {
 		this.id = id;
 	}
 
-	public String getRequestId() {
+    public UUID getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(UUID paymentId) {
+        this.paymentId = paymentId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getTransCode() {
+        return transCode;
+    }
+
+    public void setTransCode(String transCode) {
+        this.transCode = transCode;
+    }
+
+    public String getRequestId() {
 		return requestId;
 	}
 

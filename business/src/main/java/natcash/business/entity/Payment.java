@@ -38,4 +38,6 @@ public class Payment {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "trans_code")
+    private String transCode;
 }

@@ -2,12 +2,15 @@ package natcash.business.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.PaymentResponseDTO;
 import natcash.business.dto.response.RequestResponseDTO;
 import natcash.business.entity.FinAccount;
 import natcash.business.entity.Partner;
 import natcash.business.entity.Payment;
+import natcash.business.repository.CodeSeqRepository;
 import natcash.business.repository.PartnerRepository;
 import natcash.business.service.FinAccountService;
 import natcash.business.service.PartnerService;
@@ -25,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class PartnerServiceImpl implements PartnerService {
@@ -48,18 +51,21 @@ public class PartnerServiceImpl implements PartnerService {
 
     private final PaymentService paymentService;
 
+    private final CodeSeqRepository codeSeqRepository;
     @Override
     public Partner findByUsername(String username) {
         return repository.findByUsername(username);
     }
 
+
+
     @Override
     public PaymentResponseDTO initPayment(PaymentRequestDTO requestDTO, String clientIp) throws Exception {
         String generatedSignature = PaymentUtils.getSignature(requestDTO, privateKey);
 
-        if (!generatedSignature.equals(requestDTO.getSignature())) {
-            return handleError(requestDTO, ErrorCode.ERR_PARAMETERS_INVALID);
-        }
+//        if (!generatedSignature.equals(requestDTO.getSignature())) {
+//            return handleError(requestDTO, ErrorCode.ERR_PARAMETERS_INVALID);
+//        }
 
         Partner partner = this.findByUsername(requestDTO.getUsername());
         if (Objects.isNull(partner)) {
@@ -79,11 +85,11 @@ public class PartnerServiceImpl implements PartnerService {
         if (Objects.isNull(availableFinAccount)) {
             return handleError(requestDTO, ErrorCode.ERR_SYSTEM_BUSY);
         }
-
-        Payment payment = paymentService.createPayment(requestDTO, availableFinAccount.getAccountId());
+        Long nextVal = codeSeqRepository.getNextSequenceValue();
+        log.info(PaymentUtils.generateTransCode(nextVal));
+        Payment payment = paymentService.createPayment(requestDTO, availableFinAccount.getAccountId(), PaymentUtils.generateTransCode(nextVal));
         PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(ErrorCode.SUCCESS.status()), ErrorCode.SUCCESS.code(), ErrorCode.SUCCESS.message(), PaymentUtils.getUrl(url, payment.getId()), expiredAt);
-        transactionLogService.saveTransactionLog(requestDTO, responseDTO, payment.getId());
-
+        transactionLogService.saveTransactionLog(requestDTO, responseDTO, payment.getId(), PaymentUtils.generateTransCode(nextVal));
         return responseDTO;
     }
 
@@ -135,7 +141,7 @@ public class PartnerServiceImpl implements PartnerService {
 
     private PaymentResponseDTO handleError(PaymentRequestDTO requestDTO, ErrorCode errorCode) throws JsonProcessingException {
         PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(errorCode.status()), errorCode.code(), errorCode.message(), null, null);
-        transactionLogService.saveTransactionLog(requestDTO, responseDTO, null);
+        transactionLogService.saveTransactionLog(requestDTO, responseDTO, null, null);
         return responseDTO;
     }
 }

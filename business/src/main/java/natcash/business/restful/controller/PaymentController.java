@@ -1,6 +1,13 @@
 package natcash.business.restful.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.log4j.Log4j2;
+import natcash.business.dto.request.WalletTransactionRequest;
 import natcash.business.dto.response.PaymentDetailResponse;
+import natcash.business.dto.response.RequestResponseDTO;
+import natcash.business.service.WalletPaymentLogService;
+import natcash.business.utils.ErrorCode;
+import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -11,7 +18,7 @@ import natcash.business.service.PaymentService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-
+@Log4j2
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/payment")
@@ -21,6 +28,9 @@ public class PaymentController {
 	private PaymentService paymentService;
 	@Autowired
 	private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    WalletPaymentLogService walletPaymentLogService;
 
 	@PostMapping("/init-payment")
 	public ResponseEntity<Map<String, String>> initPayment(@RequestBody Map<String, Object> request) {
@@ -46,4 +56,16 @@ public class PaymentController {
 	public ResponseEntity<PaymentDetailResponse> getPaymentDetails(@PathVariable String id) {
 		return ResponseEntity.ok(paymentService.findPaymentById(UUID.fromString(id)));
 	}
+    @PostMapping("/transaction")
+    public ResponseEntity<RequestResponseDTO> walletPaymentLog(@RequestBody WalletTransactionRequest request) throws JsonProcessingException {
+        try {
+            RequestResponseDTO responseDTO = walletPaymentLogService.confirmPayment(request);
+            return ResponseEntity.ok(responseDTO);
+        } catch (Exception e) {
+            log.error("Unexpected error when confirm payment: {}", e.getMessage());
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
+            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
+            return ResponseEntity.ok(responseDTO);
+        }
+    }
 }

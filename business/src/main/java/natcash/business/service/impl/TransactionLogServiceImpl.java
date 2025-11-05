@@ -12,6 +12,7 @@ import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.TransactionAction;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.NumberUtils;
 
@@ -21,12 +22,11 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class TransactionLogServiceImpl implements TransactionLogService {
-
     private final TransactionLogRepository repository;
     private final ObjectMapper objectMapper;
 
     @Override
-    public TransactionLog saveTransactionLog(PaymentRequestDTO request, PaymentResponseDTO response, UUID paymentId) throws JsonProcessingException {
+    public TransactionLog saveTransactionLog(PaymentRequestDTO request, PaymentResponseDTO response, UUID paymentId, String transCode) throws JsonProcessingException {
         TransactionLog log = new TransactionLog();
         log.setRequestId(request.getRequestId());
         log.setOrderId(request.getOrderNumber());
@@ -42,8 +42,8 @@ public class TransactionLogServiceImpl implements TransactionLogService {
         log.setCreatedAt(LocalDateTime.now());
         log.setUpdatedAt(LocalDateTime.now());
         log.setPaymentId(paymentId);
+        log.setTransCode(transCode);
         log.setAction(TransactionAction.INIT.getValue());
-
         return repository.save(log);
     }
 

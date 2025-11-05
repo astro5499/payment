@@ -66,4 +66,22 @@ public class PaymentUtils {
         responseDTO.setMessage(message);
         return responseDTO;
     }
+    public static String generateTransCode(Long nextVal) {
+        String prefix = calculatePrefix(nextVal / 9999);
+        return prefix + String.format("%04d", nextVal % 9999 + 1);
+    }
+    public static String calculatePrefix(long index) {
+        StringBuilder prefix = new StringBuilder();
+        index++;
+
+        while (index > 0) {
+            index--;
+            char ch = (char) ('A' + (index % 26));
+            prefix.insert(0, ch);
+            index /= 26;
+        }
+
+        return prefix.toString();
+    }
+
 }

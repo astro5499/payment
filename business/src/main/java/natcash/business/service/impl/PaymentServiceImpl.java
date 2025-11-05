@@ -31,7 +31,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final Map<String, String> orderStatus = new ConcurrentHashMap<>();
 
     @Override
-    public Payment createPayment(PaymentRequestDTO requestDTO, String finAccount) {
+    public Payment createPayment(PaymentRequestDTO requestDTO, String finAccount, String transCode) {
         Payment payment = new Payment();
         payment.setId(UUID.randomUUID());
         payment.setOrderId(requestDTO.getOrderNumber());
@@ -41,7 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setStatus(PaymentStatus.PENDING.getValue());
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
-
+        payment.setTransCode(transCode);
         return repository.save(payment);
     }
 
@@ -76,7 +76,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentDetailResponse.setPaymentId(payment.getId());
             paymentDetailResponse.setAmount(payment.getAmount());
             paymentDetailResponse.setAccountId(payment.getToAccount());
-            paymentDetailResponse.setOrderId(payment.getOrderId());
+            paymentDetailResponse.setOrderId(payment.getTransCode());
             paymentDetailResponse.setQrCode(finAccount.getQrCode());
             paymentDetailResponse.setCreatedAt(dateTime);
             paymentDetailResponse.setExpiredTime(timeToLive);

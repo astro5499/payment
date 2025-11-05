@@ -11,25 +11,23 @@ import natcash.business.service.PartnerService;
 import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
 
 @Log4j2
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/partners")
 @RequiredArgsConstructor
 public class PartnerController {
-
+    @Autowired
     private final PartnerService partnerService;
+    @Autowired
     private final TransactionLogService transactionLogService;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -41,7 +39,7 @@ public class PartnerController {
         } catch (Exception e) {
             log.error("Unexpected error when init payment: {}", e.getMessage());
             PaymentResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(String.valueOf(ErrorCode.ERR_COMMON.status()), ErrorCode.ERR_COMMON.code(), e.getMessage(), null, null);
-            transactionLogService.saveTransactionLog(request, responseDTO, null);
+            transactionLogService.saveTransactionLog(request, responseDTO, null, null);
             return ResponseEntity.ok(responseDTO);
         }
     }

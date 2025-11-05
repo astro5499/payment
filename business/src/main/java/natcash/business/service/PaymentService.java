@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface PaymentService {
 
-    Payment createPayment(PaymentRequestDTO requestDTO, String finAccount);
+    Payment createPayment(PaymentRequestDTO requestDTO, String finAccount, String transCode);
 
     void updateTransaction(String orderId, String status);
 
