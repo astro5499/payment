@@ -64,7 +64,7 @@ public class PaymentController {
         } catch (Exception e) {
             log.error("Unexpected error when confirm payment: {}", e.getMessage());
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
+//            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
             return ResponseEntity.ok(responseDTO);
         }
     }
