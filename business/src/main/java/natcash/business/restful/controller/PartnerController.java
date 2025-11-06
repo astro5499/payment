@@ -53,7 +53,7 @@ public class PartnerController {
         } catch (Exception e) {
             log.error("Unexpected error when confirm payment: {}", e.getMessage());
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
-            transactionLogService.saveConfirmTransactionLog(responseDTO, id);
+            transactionLogService.saveConfirmTransactionLog(responseDTO, UUID.fromString(id));
             messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
             return ResponseEntity.ok(responseDTO);
         }

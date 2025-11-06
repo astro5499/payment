@@ -12,6 +12,8 @@ public class PaymentDetailResponse {
 
     private String orderId;
 
+    private String transCode;
+
     private Double amount;
 
     private LocalDateTime createdAt;

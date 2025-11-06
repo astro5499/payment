@@ -77,6 +77,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentDetailResponse.setAmount(payment.getAmount());
             paymentDetailResponse.setAccountId(payment.getToAccount());
             paymentDetailResponse.setOrderId(payment.getTransCode());
+            paymentDetailResponse.setTransCode(payment.getTransCode());
             paymentDetailResponse.setQrCode(finAccount.getQrCode());
             paymentDetailResponse.setCreatedAt(dateTime);
             paymentDetailResponse.setExpiredTime(timeToLive);

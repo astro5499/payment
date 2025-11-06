@@ -11,9 +11,9 @@ import java.util.UUID;
 public interface TransactionLogService {
 
     TransactionLog saveTransactionLog(PaymentRequestDTO request, PaymentResponseDTO response, UUID paymentId, String transCode) throws JsonProcessingException;
-    TransactionLog saveConfirmTransactionLog(RequestResponseDTO response, String orderId) throws JsonProcessingException;
+    TransactionLog saveConfirmTransactionLog(RequestResponseDTO response, UUID paymentId) throws JsonProcessingException;
 
     TransactionLog saveExpiredTransactionLog(RequestResponseDTO response, UUID paymentId) throws JsonProcessingException;
 
-    boolean isExistsByRequestIdOrOrderId(String requestId, String orderId);
+    boolean isExistsByRequestId(String requestId);
 }

@@ -12,9 +12,7 @@ import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.TransactionAction;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.NumberUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -48,19 +46,19 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     }
 
     @Override
-    public TransactionLog saveConfirmTransactionLog(RequestResponseDTO response, String orderId) throws JsonProcessingException {
+    public TransactionLog saveConfirmTransactionLog(RequestResponseDTO response, UUID paymentId) throws JsonProcessingException {
         TransactionLog log = new TransactionLog();
         if (ErrorCode.ERR_PAYMENT_NOT_FOUND.code().equalsIgnoreCase(response.getCode())) {
             log = new TransactionLog();
-            log.setOrderId(orderId);
+            log.setPaymentId(paymentId);
         } else {
-            TransactionLog existedPayment =repository.findFirstByOrderIdOrderByCreatedAtDesc(orderId);
+            TransactionLog existedPayment = repository.findFirstByPaymentIdOrderByCreatedAtDesc(paymentId);
             BeanUtils.copyProperties(existedPayment, log, "id");
         }
         log.setCreatedAt(LocalDateTime.now());
         log.setStatus(response.getStatus());
         log.setErrorDesc(ErrorCode.SUCCESS.code().equals(response.getCode()) ? null : response.getMessage());
-        log.setRequestPayload(orderId);
+        log.setRequestPayload(paymentId.toString());
         log.setResponsePayload(objectMapper.writeValueAsString(response));
         log.setUpdatedAt(LocalDateTime.now());
         log.setAction(TransactionAction.CONFIRM.getValue());
@@ -89,7 +87,7 @@ public class TransactionLogServiceImpl implements TransactionLogService {
     }
 
     @Override
-    public boolean isExistsByRequestIdOrOrderId(String requestId, String orderId) {
-        return repository.existsByRequestIdAndOrderIdAndStatus(requestId, orderId, String.valueOf(ErrorCode.SUCCESS.status()));
+    public boolean isExistsByRequestId(String requestId) {
+        return repository.existsByRequestIdAndStatus(requestId, String.valueOf(ErrorCode.SUCCESS.status()));
     }
 }

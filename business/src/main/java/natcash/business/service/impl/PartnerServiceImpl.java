@@ -2,7 +2,6 @@ package natcash.business.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.PaymentResponseDTO;
@@ -77,7 +76,7 @@ public class PartnerServiceImpl implements PartnerService {
             return handleError(requestDTO, ErrorCode.ERR_PARTNER_IP_NOT_VALID);
         }
 
-        if (transactionLogService.isExistsByRequestIdOrOrderId(requestDTO.getRequestId(), requestDTO.getOrderNumber())) {
+        if (transactionLogService.isExistsByRequestId(requestDTO.getRequestId())) {
             return handleError(requestDTO, ErrorCode.ERR_PARTNER_REQUEST_ORDER_ALREADY_EXIST);
         }
 
@@ -94,24 +93,24 @@ public class PartnerServiceImpl implements PartnerService {
     }
 
     @Override
-    public RequestResponseDTO confirmPayment(String orderId) throws JsonProcessingException {
+    public RequestResponseDTO confirmPayment(String paymentId) throws JsonProcessingException {
         LocalDateTime current = LocalDateTime.now();
-        Payment payment = paymentService.findPaymentByOrderId(orderId);
+        Payment payment = paymentService.findById(UUID.fromString(paymentId));
         if (Objects.isNull(payment)) {
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
-            transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+            transactionLogService.saveConfirmTransactionLog(responseDTO, UUID.fromString(paymentId));
             return responseDTO;
         }
 
         LocalDateTime dateTime = payment.getCreatedAt();
         if (!dateTime.toLocalDate().isEqual(current.toLocalDate()) || Duration.between(dateTime, current).getSeconds() > expiredAt) {
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_EXPIRED, ErrorCode.ERR_PAYMENT_EXPIRED.message());
-            transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+            transactionLogService.saveConfirmTransactionLog(responseDTO, UUID.fromString(paymentId));
             return responseDTO;
         }
 
         RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
-        transactionLogService.saveConfirmTransactionLog(responseDTO, orderId);
+        transactionLogService.saveConfirmTransactionLog(responseDTO, UUID.fromString(paymentId));
 
         payment.setStatus(PaymentStatus.SUCCESS.getValue());
         paymentService.updatePaymentStatus(payment);

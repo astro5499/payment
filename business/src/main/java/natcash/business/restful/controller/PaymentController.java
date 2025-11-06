@@ -56,6 +56,7 @@ public class PaymentController {
 	public ResponseEntity<PaymentDetailResponse> getPaymentDetails(@PathVariable String id) {
 		return ResponseEntity.ok(paymentService.findPaymentById(UUID.fromString(id)));
 	}
+
     @PostMapping("/transaction")
     public ResponseEntity<RequestResponseDTO> walletPaymentLog(@RequestBody WalletTransactionRequest request) throws JsonProcessingException {
         try {
