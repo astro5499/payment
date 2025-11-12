@@ -1,5 +1,6 @@
 package natcash.business.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.WalletTransactionRequest;
@@ -46,37 +47,44 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     }
 
     @Override
-    public RequestResponseDTO confirmPayment(WalletTransactionRequest request) throws Exception {
+    public RequestResponseDTO confirmPayment(WalletTransactionRequest request) throws JsonProcessingException {
         Payment payment = paymentService.findPaymentByTransCode(request.getTransactionContent());
-        if (Objects.isNull(payment)) {
+        try {
+            if (Objects.isNull(payment)) {
+                RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
+                transactionLogService.saveConfirmTransactionLog(responseDTO, null);
+                return responseDTO;
+            }
+
+            WalletPaymentLog logtrans = new WalletPaymentLog();
+            logtrans.setEwalletTransactionId(Long.valueOf(request.getTransactionId()));
+            logtrans.setAmount(BigDecimal.valueOf(request.getAmount().doubleValue()));
+            logtrans.setTransactionContent(request.getTransactionContent());
+            logtrans.setFromPhone(request.getFromPhone());
+            logtrans.setToPhone(request.getToPhone());
+            logtrans.setCreated_at(LocalDateTime.now());
+            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
+            walletPaymentLogRepository.save(logtrans);
+
+            TransactionLog transactionLog = transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
+            payment.setStatus(PaymentStatus.SUCCESS.getValue());
+            paymentService.updatePaymentStatus(payment);
+
+            String callbackUrl = PaymentUtils.generateCallbackToken(transactionLog.getCallbackUrl(), logtrans.getEwalletTransactionId(), logtrans.getToPhone(), privateKey, callbackParams);
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setStatus("SUCCESS");
+            messageResponse.setCallbackUrl(callbackUrl);
+
+
+            log.info("Sending to topic: /topic/payment-status-" + payment.getId());
+            messagingTemplate.convertAndSend("/topic/payment-status-" + payment.getId().toString(),messageResponse);
+
+            return responseDTO;
+        } catch (Exception e) {
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
-            transactionLogService.saveConfirmTransactionLog(responseDTO, null);
+            transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
             return responseDTO;
         }
 
-        WalletPaymentLog logtrans = new WalletPaymentLog();
-        logtrans.setEwalletTransactionId(Long.valueOf(request.getTransactionId()));
-        logtrans.setAmount(BigDecimal.valueOf(request.getAmount().doubleValue()));
-        logtrans.setTransactionContent(request.getTransactionContent());
-        logtrans.setFromPhone(request.getFromPhone());
-        logtrans.setToPhone(request.getToPhone());
-        logtrans.setCreated_at(LocalDateTime.now());
-        RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
-        walletPaymentLogRepository.save(logtrans);
-
-        TransactionLog transactionLog = transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
-        payment.setStatus(PaymentStatus.SUCCESS.getValue());
-        paymentService.updatePaymentStatus(payment);
-
-        String callbackUrl = PaymentUtils.generateCallbackToken(transactionLog.getCallbackUrl(), logtrans.getEwalletTransactionId(), logtrans.getToPhone(), privateKey, callbackParams);
-        MessageResponse messageResponse = new MessageResponse();
-        messageResponse.setStatus("SUCCESS");
-        messageResponse.setCallbackUrl(callbackUrl);
-
-
-        log.info("Sending to topic: /topic/payment-status-" + payment.getId());
-        messagingTemplate.convertAndSend("/topic/payment-status-" + payment.getId().toString(),messageResponse);
-
-        return responseDTO;
     }
 }

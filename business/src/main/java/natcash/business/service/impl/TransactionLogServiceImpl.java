@@ -15,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -58,7 +59,7 @@ public class TransactionLogServiceImpl implements TransactionLogService {
         log.setCreatedAt(LocalDateTime.now());
         log.setStatus(response.getStatus());
         log.setErrorDesc(ErrorCode.SUCCESS.code().equals(response.getCode()) ? null : response.getMessage());
-        log.setRequestPayload(paymentId.toString());
+        log.setRequestPayload(Objects.nonNull(paymentId) ? paymentId.toString() : null);
         log.setResponsePayload(objectMapper.writeValueAsString(response));
         log.setUpdatedAt(LocalDateTime.now());
         log.setAction(TransactionAction.CONFIRM.getValue());
