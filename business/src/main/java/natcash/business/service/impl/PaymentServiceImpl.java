@@ -54,8 +54,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment findPaymentByOrderId(String orderId) {
-        return repository.findPaymentByOrderId(orderId);
+    public Payment findPaymentByTransCode(String transCode) {
+        return repository.findPaymentByTransCode(transCode);
     }
 
     @Override

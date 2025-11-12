@@ -24,9 +24,9 @@ public class PaymentUtils {
     public static String getUrl(String baseUrl, UUID paymentId) {
         try{
             return String.format(baseUrl,URLEncoder.encode(paymentId.toString(), StandardCharsets.UTF_8.toString()));
-    } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException("Error encoding callback URL", e);
-    }
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Error encoding callback URL", e);
+        }
     }
 
     private static String calculateHMac(String key, String data) throws Exception {
@@ -82,6 +82,15 @@ public class PaymentUtils {
         }
 
         return prefix.toString();
+    }
+
+    public static String generateCallbackToken(String callbackUrl, Long id, String toPhone, String secretKey, String callbackParams) throws Exception {
+        String encodeString = id + toPhone;
+        String base64Encoded = Base64.getEncoder().encodeToString(encodeString.getBytes(StandardCharsets.UTF_8));
+
+        callbackParams = String.format(callbackParams, id, toPhone, calculateHMac(secretKey, base64Encoded));
+
+        return callbackUrl + callbackParams;
     }
 
 }

@@ -6,5 +6,5 @@ import natcash.business.entity.WalletPaymentLog;
 
 public interface WalletPaymentLogService {
     void save(WalletPaymentLog paymentLog);
-    RequestResponseDTO confirmPayment(WalletTransactionRequest paymentLog);
+    RequestResponseDTO confirmPayment(WalletTransactionRequest paymentLog) throws Exception;
 }
