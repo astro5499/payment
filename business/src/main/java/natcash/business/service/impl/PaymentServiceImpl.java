@@ -11,6 +11,7 @@ import natcash.business.service.PaymentService;
 import natcash.business.utils.PaymentStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
         payment.setUpdatedAt(LocalDateTime.now());
         payment.setTransCode(transCode);
+        payment.setLanguage(ObjectUtils.isEmpty(requestDTO.getLanguage()) ? "en" : requestDTO.getLanguage().trim().toLowerCase());
         return repository.save(payment);
     }
 
@@ -54,8 +56,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment findPaymentByTransCode(String transCode) {
-        return repository.findPaymentByTransCode(transCode);
+    public Payment findPaymentByTransCodeAndStatus(String transCode, String status) {
+        return repository.findPaymentByTransCodeAndStatus(transCode, status);
     }
 
     @Override
@@ -82,6 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
             paymentDetailResponse.setCreatedAt(dateTime);
             paymentDetailResponse.setExpiredTime(timeToLive);
             paymentDetailResponse.setStatus(payment.getStatus());
+            paymentDetailResponse.setLanguage(payment.getLanguage());
         }
         return paymentDetailResponse;
     }

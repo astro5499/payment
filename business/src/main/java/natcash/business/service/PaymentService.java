@@ -14,7 +14,7 @@ public interface PaymentService {
 
     String checkPaymentStatus(String orderId);
 
-    Payment findPaymentByTransCode(String transCode);
+    Payment findPaymentByTransCodeAndStatus(String transCode, String status);
     Payment findById(UUID paymentId);
 
     PaymentDetailResponse findPaymentById(UUID id);

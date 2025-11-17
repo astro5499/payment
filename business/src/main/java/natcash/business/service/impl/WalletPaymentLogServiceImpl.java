@@ -48,7 +48,7 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
 
     @Override
     public RequestResponseDTO confirmPayment(WalletTransactionRequest request) throws JsonProcessingException {
-        Payment payment = paymentService.findPaymentByTransCode(request.getTransactionContent());
+        Payment payment = paymentService.findPaymentByTransCodeAndStatus(request.getTransactionContent(), PaymentStatus.PENDING.getValue());
         try {
             if (Objects.isNull(payment)) {
                 RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());

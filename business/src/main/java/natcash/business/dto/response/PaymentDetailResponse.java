@@ -25,4 +25,6 @@ public class PaymentDetailResponse {
     private Long expiredTime;
 
     private String status;
+
+    private String language;
 }

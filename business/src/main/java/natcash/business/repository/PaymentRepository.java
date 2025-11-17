@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
-    Payment findPaymentByTransCode(String transCode);
+    Payment findPaymentByTransCodeAndStatus(String transCode, String status);
     @Modifying
     @Transactional
     @Query("UPDATE Payment p SET p.status = 'SUCCESS', p.updatedAt = CURRENT_TIMESTAMP " +

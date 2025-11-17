@@ -22,4 +22,6 @@ public class PaymentRequestDTO {
     private Double amount;
 
     private String signature;
+
+    private String language;
 }

@@ -40,4 +40,7 @@ public class Payment {
 
     @Column(name = "trans_code")
     private String transCode;
+
+    @Column(name = "language")
+    private String language;
 }
