@@ -62,9 +62,9 @@ public class PartnerServiceImpl implements PartnerService {
     public PaymentResponseDTO initPayment(PaymentRequestDTO requestDTO, String clientIp) throws Exception {
         String generatedSignature = PaymentUtils.getSignature(requestDTO, privateKey);
 
-//        if (!generatedSignature.equals(requestDTO.getSignature())) {
-//            return handleError(requestDTO, ErrorCode.ERR_PARAMETERS_INVALID);
-//        }
+        if (!generatedSignature.equals(requestDTO.getSignature())) {
+            return handleError(requestDTO, ErrorCode.ERR_PARAMETERS_INVALID);
+        }
 
         Partner partner = this.findByUsername(requestDTO.getUsername());
         if (Objects.isNull(partner)) {
