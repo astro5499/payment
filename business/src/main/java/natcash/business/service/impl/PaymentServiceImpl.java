@@ -11,6 +11,7 @@ import natcash.business.service.PaymentService;
 import natcash.business.utils.PaymentStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
@@ -90,6 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void updatePaymentStatus(Payment payment) {
         repository.save(payment);
     }

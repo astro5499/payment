@@ -10,6 +10,7 @@ import natcash.business.entity.Payment;
 import natcash.business.entity.TransactionLog;
 import natcash.business.entity.WalletPaymentLog;
 import natcash.business.repository.WalletPaymentLogRepository;
+import natcash.business.service.MessageSenderService;
 import natcash.business.service.PaymentService;
 import natcash.business.service.TransactionLogService;
 import natcash.business.service.WalletPaymentLogService;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +34,7 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     private final WalletPaymentLogRepository walletPaymentLogRepository;
     private final PaymentService paymentService;
     private final TransactionLogService transactionLogService;
+    private final MessageSenderService messageSenderService;
 
     @Value("${payment.secret_key}")
     private String privateKey;
@@ -39,14 +42,14 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     @Value("${payment.callback_params}")
     private String callbackParams;
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+
     @Override
     public void save(WalletPaymentLog paymentLog) {
         walletPaymentLogRepository.save(paymentLog);
     }
 
     @Override
+    @Transactional
     public RequestResponseDTO confirmPayment(WalletTransactionRequest request) throws JsonProcessingException {
         Payment payment = paymentService.findPaymentByTransCodeAndStatus(request.getTransactionContent(), PaymentStatus.PENDING.getValue());
         try {
@@ -77,12 +80,16 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
 
 
             log.info("Sending to topic: /topic/payment-status-" + payment.getId());
-            messagingTemplate.convertAndSend("/topic/payment-status-" + payment.getId().toString(),messageResponse);
+            messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(),messageResponse);
 
             return responseDTO;
         } catch (Exception e) {
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
             transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
+
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setStatus("FAILED");
+            messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(), messageResponse);
             return responseDTO;
         }
 

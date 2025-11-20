@@ -8,6 +8,7 @@ import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.MessageResponse;
 import natcash.business.dto.response.PaymentResponseDTO;
 import natcash.business.dto.response.RequestResponseDTO;
+import natcash.business.service.MessageSenderService;
 import natcash.business.service.PartnerService;
 import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
@@ -32,11 +33,10 @@ import java.util.UUID;
 @RequestMapping("/partners")
 @RequiredArgsConstructor
 public class PartnerController {
-    @Autowired
+
     private final PartnerService partnerService;
-    @Autowired
     private final TransactionLogService transactionLogService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageSenderService messageSenderService;
 
     @PostMapping("/init")
     public ResponseEntity<PaymentResponseDTO> initPayment(@RequestBody PaymentRequestDTO request, HttpServletRequest httpServletRequest) throws JsonProcessingException {
@@ -57,7 +57,7 @@ public class PartnerController {
             RequestResponseDTO responseDTO = partnerService.expiredPayment(UUID.fromString(id));
             MessageResponse messageResponse = new MessageResponse();
             messageResponse.setStatus("EXPIRED");
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, messageResponse);
+            messageSenderService.sendMessage("/topic/payment-status-" + id, messageResponse);
             return ResponseEntity.ok(responseDTO);
 
         } catch (Exception e) {
@@ -66,7 +66,7 @@ public class PartnerController {
             transactionLogService.saveExpiredTransactionLog(responseDTO, UUID.fromString(id));
             MessageResponse messageResponse = new MessageResponse();
             messageResponse.setStatus("EXPIRED");
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, messageResponse);
+            messageSenderService.sendMessage("/topic/payment-status-" + id, messageResponse);
             return ResponseEntity.ok(responseDTO);
         }
     }
