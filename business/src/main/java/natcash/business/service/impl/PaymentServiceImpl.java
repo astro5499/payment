@@ -3,6 +3,7 @@ package natcash.business.service.impl;
 import lombok.RequiredArgsConstructor;
 import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.PaymentDetailResponse;
+import natcash.business.dto.response.PaymentQueryDTO;
 import natcash.business.entity.FinAccount;
 import natcash.business.entity.Payment;
 import natcash.business.repository.PaymentRepository;
@@ -15,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -102,5 +105,16 @@ public class PaymentServiceImpl implements PaymentService {
         if (Objects.nonNull(payment)) {
             payment.setStatus(PaymentStatus.EXPIRED.getValue());
         }
+    }
+
+    @Override
+    public Set<PaymentQueryDTO> findAllPaymentByStatus(String status) {
+        return repository.findAllPaymentByStatus(status);
+    }
+
+    @Override
+    @Transactional
+    public void confirmPayments(UUID id) {
+        repository.confirmTrans(id);
     }
 }

@@ -7,6 +7,7 @@ import natcash.business.repository.FinAccountRepository;
 import natcash.business.service.FinAccountService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,5 +37,10 @@ public class FinAccountServiceImpl implements FinAccountService {
 
             repository.save(finAccount);
         }
+    }
+
+    @Override
+    public List<String> findAllFinAccountsByPendingPayment() {
+        return repository.findAllFinAccountsByPendingPayment();
     }
 }

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.WalletTransactionRequest;
 import natcash.business.dto.response.MessageResponse;
+import natcash.business.dto.response.PaymentQueryDTO;
 import natcash.business.dto.response.RequestResponseDTO;
 import natcash.business.entity.Payment;
 import natcash.business.entity.TransactionLog;
@@ -25,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Log4j2
 @Service
@@ -46,6 +49,11 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     @Override
     public void save(WalletPaymentLog paymentLog) {
         walletPaymentLogRepository.save(paymentLog);
+    }
+
+    @Override
+    public void saveAll(List<WalletPaymentLog> paymentLogs) {
+        walletPaymentLogRepository.saveAll(paymentLogs);
     }
 
     @Override
@@ -92,6 +100,38 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
             messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(), messageResponse);
             return responseDTO;
         }
+    }
 
+    @Override
+    public Long getMaxIdByFinAccount(String accountId) {
+        return walletPaymentLogRepository.findMaxTransactionIdByFinAccount(accountId);
+    }
+
+    @Override
+    public void autoConfirmPayment(Set<PaymentQueryDTO> payments) throws JsonProcessingException {
+        for (PaymentQueryDTO payment : payments) {
+            try {
+                RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
+                TransactionLog transactionLog = transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
+                paymentService.confirmPayments(payment.getId());
+
+                String callbackUrl = PaymentUtils.generateCallbackToken(transactionLog.getCallbackUrl(), payment.getTransactionId(), payment.getToAccount(), privateKey, callbackParams);
+                MessageResponse messageResponse = new MessageResponse();
+                messageResponse.setStatus("SUCCESS");
+                messageResponse.setCallbackUrl(callbackUrl);
+
+
+                log.info("Sending to topic: /topic/payment-status-" + payment.getId());
+                messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(),messageResponse);
+
+            } catch (Exception e) {
+                RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
+                transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
+
+                MessageResponse messageResponse = new MessageResponse();
+                messageResponse.setStatus("FAILED");
+                messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(), messageResponse);
+            }
+        }
     }
 }
