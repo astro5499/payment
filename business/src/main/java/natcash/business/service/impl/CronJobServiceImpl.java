@@ -37,7 +37,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final PaymentService paymentService;
 
     @Override
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 5000)
     public void getPayments() {
         log.info("process cronjob to get payments");
         try {
@@ -80,24 +80,24 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     @Override
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 5000)
     public void autoConfirmPayment() {
         log.info("autoConfirmPayment cronjob started");
 
-//        Set<PaymentQueryDTO> payments = paymentService.findAllPaymentByStatus(PaymentStatus.PENDING.getValue());
-//
-//        log.info("autoConfirmPayment cronjob list payments to process: {}", payments);
-//        if (CollectionUtils.isEmpty(payments)) {
-//            log.info("autoConfirmPayment cronjob list payments empty");
-//            return;
-//        }
-//
-//        try {
-//            paymentLogService.autoConfirmPayment(payments);
-//            log.info("autoConfirmPayment cronjob finished");
-//        } catch (JsonProcessingException e) {
-//            log.error("autoConfirmPayment cronjob get error: ", e);
-//        }
+        Set<PaymentQueryDTO> payments = paymentService.findAllPaymentByStatus(PaymentStatus.PENDING.getValue());
+
+        log.info("autoConfirmPayment cronjob list payments to process: {}", payments);
+        if (CollectionUtils.isEmpty(payments)) {
+            log.info("autoConfirmPayment cronjob list payments empty");
+            return;
+        }
+
+        try {
+            paymentLogService.autoConfirmPayment(payments);
+            log.info("autoConfirmPayment cronjob finished");
+        } catch (JsonProcessingException e) {
+            log.error("autoConfirmPayment cronjob get error: ", e);
+        }
 
     }
 
