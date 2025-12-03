@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 @Log4j2
 @Service
@@ -110,10 +111,11 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     @Override
     public void autoConfirmPayment(Set<PaymentQueryDTO> payments) throws JsonProcessingException {
         for (PaymentQueryDTO payment : payments) {
+            UUID paymentId = UUID.fromString(payment.getId());
             try {
                 RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.SUCCESS, ErrorCode.SUCCESS.message());
-                TransactionLog transactionLog = transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
-                paymentService.confirmPayments(payment.getId());
+                TransactionLog transactionLog = transactionLogService.saveConfirmTransactionLog(responseDTO, paymentId);
+                paymentService.confirmPayments(paymentId);
 
                 String callbackUrl = PaymentUtils.generateCallbackToken(transactionLog.getCallbackUrl(), payment.getTransactionId(), payment.getToAccount(), privateKey, callbackParams);
                 MessageResponse messageResponse = new MessageResponse();
@@ -121,16 +123,17 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
                 messageResponse.setCallbackUrl(callbackUrl);
 
 
-                log.info("Sending to topic: /topic/payment-status-" + payment.getId());
-                messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(),messageResponse);
+                log.info("Sending to topic: /topic/payment-status-" + paymentId);
+                log.info("Sending to topic: messageResponse: " + messageResponse);
+                messageSenderService.sendMessage("/topic/payment-status-" + paymentId, messageResponse);
 
             } catch (Exception e) {
                 RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_PAYMENT_NOT_FOUND, ErrorCode.ERR_PAYMENT_NOT_FOUND.message());
-                transactionLogService.saveConfirmTransactionLog(responseDTO, payment.getId());
+                transactionLogService.saveConfirmTransactionLog(responseDTO, paymentId);
 
                 MessageResponse messageResponse = new MessageResponse();
                 messageResponse.setStatus("FAILED");
-                messageSenderService.sendMessage("/topic/payment-status-" + payment.getId().toString(), messageResponse);
+                messageSenderService.sendMessage("/topic/payment-status-" + paymentId.toString(), messageResponse);
             }
         }
     }

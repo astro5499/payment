@@ -24,13 +24,13 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     String findIdByTransCode(@Param("transCode") String transCode);
 
     @Query(value = """
-        SELECT p.id AS id,
+        SELECT CAST(p.id AS TEXT) AS id,
                p.to_account AS toAccount,
                pl.ewallet_transaction_id AS transactionId
         FROM payment p
         LEFT JOIN payment_log pl ON pl.amount = p.amount and p.trans_code = pl.transaction_content
         WHERE p.status = :status AND pl.ewallet_transaction_id IS NOT NULL
-        AND pl.created_at::date BETWEEN CURRENT_DATE - INTERVAL '1 day' AND CURRENT_DATE;
+        AND CAST(pl.created_at AS date) BETWEEN CURRENT_DATE - INTERVAL '1 day' AND CURRENT_DATE
     """, nativeQuery = true)
     Set<PaymentQueryDTO> findAllPaymentByStatus(@Param("status") String status);
 

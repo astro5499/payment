@@ -52,22 +52,21 @@ public class CronJobServiceImpl implements CronJobService {
                 log.info("getPayments cronjob list payments get from third party: {}", payments);
 
                 if (CollectionUtils.isEmpty(payments)) {
-                    return;
+                    break;
                 }
 
                 payments = payments.stream().filter(e -> e.getDirection().equals("1")).toList();
                 log.info("getPayments cronjob maxTransactionId: {}", maxTransactionId);
+                List<WalletPaymentLog> savedEntities = new ArrayList<>();
                 if (Objects.nonNull(maxTransactionId)) {
-                    entities = payments.stream().filter(e -> Long.parseLong(e.getTransactionId()) > maxTransactionId).map(this::buildWalletPaymentLog).toList();
-                    if (CollectionUtils.isEmpty(entities)) {
-                        return;
+                    savedEntities = payments.stream().filter(e -> Long.parseLong(e.getTransactionId()) > maxTransactionId).map(this::buildWalletPaymentLog).toList();
+                    if (CollectionUtils.isEmpty(savedEntities)) {
+                        break;
                     }
                 } else {
-                    entities = payments.stream().map(this::buildWalletPaymentLog).toList();
-                    if (CollectionUtils.isEmpty(entities)) {
-                        return;
-                    }
+                    savedEntities = payments.stream().map(this::buildWalletPaymentLog).toList();
                 }
+                entities.addAll(savedEntities);
             }
             log.info("getPayments cronjob entities to save into payment_log table: {}", entities);
 
@@ -84,7 +83,8 @@ public class CronJobServiceImpl implements CronJobService {
     public void autoConfirmPayment() {
         log.info("autoConfirmPayment cronjob started");
 
-        Set<PaymentQueryDTO> payments = paymentService.findAllPaymentByStatus(PaymentStatus.PENDING.getValue());
+        try {
+            Set<PaymentQueryDTO> payments = paymentService.findAllPaymentByStatus(PaymentStatus.PENDING.getValue());
 
         log.info("autoConfirmPayment cronjob list payments to process: {}", payments);
         if (CollectionUtils.isEmpty(payments)) {
@@ -92,10 +92,9 @@ public class CronJobServiceImpl implements CronJobService {
             return;
         }
 
-        try {
             paymentLogService.autoConfirmPayment(payments);
             log.info("autoConfirmPayment cronjob finished");
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             log.error("autoConfirmPayment cronjob get error: ", e);
         }
 
