@@ -5,8 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.PaymentRequestDTO;
+import natcash.business.dto.response.MessageResponse;
 import natcash.business.dto.response.PaymentResponseDTO;
 import natcash.business.dto.response.RequestResponseDTO;
+import natcash.business.service.MessageSenderService;
 import natcash.business.service.PartnerService;
 import natcash.business.service.TransactionLogService;
 import natcash.business.utils.ErrorCode;
@@ -14,7 +16,13 @@ import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.UUID;
@@ -25,11 +33,10 @@ import java.util.UUID;
 @RequestMapping("/partners")
 @RequiredArgsConstructor
 public class PartnerController {
-    @Autowired
+
     private final PartnerService partnerService;
-    @Autowired
     private final TransactionLogService transactionLogService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageSenderService messageSenderService;
 
     @PostMapping("/init")
     public ResponseEntity<PaymentResponseDTO> initPayment(@RequestBody PaymentRequestDTO request, HttpServletRequest httpServletRequest) throws JsonProcessingException {
@@ -44,33 +51,22 @@ public class PartnerController {
         }
     }
 
-    @PostMapping("/confirm/{id}")
-    public ResponseEntity<RequestResponseDTO> confirmPayment(@PathVariable("id") String id) throws JsonProcessingException {
-        try {
-            RequestResponseDTO responseDTO = partnerService.confirmPayment(id);
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, responseDTO.getCode().equalsIgnoreCase(ErrorCode.SUCCESS.code()) ? "SUCCESS" : "FAILED");
-            return ResponseEntity.ok(responseDTO);
-        } catch (Exception e) {
-            log.error("Unexpected error when confirm payment: {}", e.getMessage());
-            RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
-            transactionLogService.saveConfirmTransactionLog(responseDTO, id);
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "FAILED");
-            return ResponseEntity.ok(responseDTO);
-        }
-    }
-
     @PatchMapping("/expired/{id}")
     public ResponseEntity<RequestResponseDTO> expiredPayment(@PathVariable String id) throws JsonProcessingException {
         try {
             RequestResponseDTO responseDTO = partnerService.expiredPayment(UUID.fromString(id));
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "EXPIRED");
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setStatus("EXPIRED");
+            messageSenderService.sendMessage("/topic/payment-status-" + id, messageResponse);
             return ResponseEntity.ok(responseDTO);
 
         } catch (Exception e) {
             log.error("Unexpected error when expired payment: {}", e.getMessage());
             RequestResponseDTO responseDTO = PaymentUtils.buildPaymentResponse(ErrorCode.ERR_COMMON, e.getMessage());
             transactionLogService.saveExpiredTransactionLog(responseDTO, UUID.fromString(id));
-            messagingTemplate.convertAndSend("/topic/payment-status-" + id, "EXPIRED");
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setStatus("EXPIRED");
+            messageSenderService.sendMessage("/topic/payment-status-" + id, messageResponse);
             return ResponseEntity.ok(responseDTO);
         }
     }

@@ -12,6 +12,8 @@ public class PaymentDetailResponse {
 
     private String orderId;
 
+    private String transCode;
+
     private Double amount;
 
     private LocalDateTime createdAt;
@@ -23,4 +25,6 @@ public class PaymentDetailResponse {
     private Long expiredTime;
 
     private String status;
+
+    private String language;
 }

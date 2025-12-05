@@ -5,15 +5,20 @@ import lombok.extern.log4j.Log4j2;
 import natcash.business.dto.request.WalletTransactionRequest;
 import natcash.business.dto.response.PaymentDetailResponse;
 import natcash.business.dto.response.RequestResponseDTO;
+import natcash.business.service.PaymentService;
 import natcash.business.service.WalletPaymentLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
-
-import natcash.business.service.PaymentService;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +61,7 @@ public class PaymentController {
 	public ResponseEntity<PaymentDetailResponse> getPaymentDetails(@PathVariable String id) {
 		return ResponseEntity.ok(paymentService.findPaymentById(UUID.fromString(id)));
 	}
+
     @PostMapping("/transaction")
     public ResponseEntity<RequestResponseDTO> walletPaymentLog(@RequestBody WalletTransactionRequest request) throws JsonProcessingException {
         try {

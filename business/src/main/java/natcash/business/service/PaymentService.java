@@ -2,9 +2,11 @@ package natcash.business.service;
 
 import natcash.business.dto.request.PaymentRequestDTO;
 import natcash.business.dto.response.PaymentDetailResponse;
-import natcash.business.dto.response.PaymentResponseDTO;
+import natcash.business.dto.response.PaymentQueryDTO;
 import natcash.business.entity.Payment;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface PaymentService {
@@ -15,7 +17,7 @@ public interface PaymentService {
 
     String checkPaymentStatus(String orderId);
 
-    Payment findPaymentByOrderId(String orderId);
+    Payment findPaymentByTransCodeAndStatus(String transCode, String status);
     Payment findById(UUID paymentId);
 
     PaymentDetailResponse findPaymentById(UUID id);
@@ -23,4 +25,7 @@ public interface PaymentService {
     void updatePaymentStatus(Payment payment);
     void expiredPaymentStatus(UUID id);
 
+    Set<PaymentQueryDTO> findAllPaymentByStatus(String status);
+
+    void confirmPayments(UUID ids);
 }
