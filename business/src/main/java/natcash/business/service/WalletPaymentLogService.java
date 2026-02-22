@@ -20,4 +20,7 @@ public interface WalletPaymentLogService {
     Long getMaxIdByFinAccount(String accountId);
 
     void autoConfirmPayment(Set<PaymentQueryDTO> payments) throws JsonProcessingException;
+
+    void confirmPaymentByTransCode(String transCode) throws JsonProcessingException;
+
 }

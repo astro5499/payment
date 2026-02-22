@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -94,6 +93,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public PaymentDetailResponse findPaymentByTransCodeId(String transCode) {
+        PaymentDetailResponse paymentDetailResponse = new PaymentDetailResponse();
+        Payment payment = repository.findPaymentByTransCode(transCode);
+
+        if (Objects.nonNull(payment)) {
+            LocalDateTime dateTime = payment.getCreatedAt();
+
+            FinAccount finAccount = finAccountService.findFinAccountById(payment.getToAccount());
+
+            paymentDetailResponse.setPaymentId(payment.getId());
+            paymentDetailResponse.setAmount(payment.getAmount());
+            paymentDetailResponse.setAccountId(payment.getToAccount());
+            paymentDetailResponse.setOrderId(payment.getTransCode());
+            paymentDetailResponse.setTransCode(payment.getTransCode());
+            paymentDetailResponse.setQrCode(finAccount.getQrCode());
+            paymentDetailResponse.setCreatedAt(dateTime);
+            paymentDetailResponse.setExpiredTime(timeToLive);
+            paymentDetailResponse.setStatus(payment.getStatus());
+            paymentDetailResponse.setLanguage(payment.getLanguage());
+        }
+        return paymentDetailResponse;
+    }
+
+    @Override
     @Transactional
     public void updatePaymentStatus(Payment payment) {
         repository.save(payment);
@@ -110,6 +133,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Set<PaymentQueryDTO> findAllPaymentByStatus(String status) {
         return repository.findAllPaymentByStatus(status);
+    }
+
+    @Override
+    public Set<PaymentQueryDTO> findByTransCodeAndStatus(String transCode, String status) {
+        return repository.findByTransCodeAndStatus(transCode, status);
     }
 
     @Override

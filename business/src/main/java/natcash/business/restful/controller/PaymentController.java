@@ -10,6 +10,7 @@ import natcash.business.service.WalletPaymentLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -47,19 +49,21 @@ public class PaymentController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping("/confirm/{orderId}")
-	public ResponseEntity<String> confirmPayment(@PathVariable String orderId) {
-	    paymentService.updateTransaction(orderId, "SUCCESS");
+	@PostMapping("/confirm/{transCode}")
+	public ResponseEntity<Void> confirmPayment(@PathVariable String transCode) throws JsonProcessingException {
+		walletPaymentLogService.confirmPaymentByTransCode(transCode);
 
-	    // Push realtime sang client
-	    messagingTemplate.convertAndSend("/topic/payment-status-" + orderId, "SUCCESS");
-
-	    return ResponseEntity.ok("Payment confirmed for " + orderId);
+	    return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 
 	@GetMapping("/{id}")
 	public ResponseEntity<PaymentDetailResponse> getPaymentDetails(@PathVariable String id) {
 		return ResponseEntity.ok(paymentService.findPaymentById(UUID.fromString(id)));
+	}
+
+	@GetMapping
+	public ResponseEntity<PaymentDetailResponse> getPaymentDetailsByTransCode(@RequestParam(name = "transCode") String transCode) {
+		return ResponseEntity.ok(paymentService.findPaymentByTransCodeId(transCode));
 	}
 
     @PostMapping("/transaction")

@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -135,6 +137,15 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
                 messageResponse.setStatus("FAILED");
                 messageSenderService.sendMessage("/topic/payment-status-" + paymentId.toString(), messageResponse);
             }
+        }
+    }
+
+    @Override
+    public void confirmPaymentByTransCode(String transCode) throws JsonProcessingException {
+        Set<PaymentQueryDTO> payments = paymentService.findByTransCodeAndStatus(transCode, PaymentStatus.PENDING.getValue());
+
+        if (!CollectionUtils.isEmpty(payments)) {
+            this.autoConfirmPayment(payments);
         }
     }
 }

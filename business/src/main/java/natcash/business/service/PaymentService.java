@@ -21,11 +21,15 @@ public interface PaymentService {
     Payment findById(UUID paymentId);
 
     PaymentDetailResponse findPaymentById(UUID id);
+    PaymentDetailResponse findPaymentByTransCodeId(String transCode);
 
     void updatePaymentStatus(Payment payment);
     void expiredPaymentStatus(UUID id);
 
     Set<PaymentQueryDTO> findAllPaymentByStatus(String status);
+
+    Set<PaymentQueryDTO> findByTransCodeAndStatus(String transCode, String status);
+
 
     void confirmPayments(UUID ids);
 }
