@@ -93,9 +93,9 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentDetailResponse findPaymentByTransCodeId(String transCode) {
+    public PaymentDetailResponse findPaymentByPartnerCodeAndOrderId(String partnerCode, String orderId) {
         PaymentDetailResponse paymentDetailResponse = new PaymentDetailResponse();
-        Payment payment = repository.findPaymentByTransCode(transCode);
+        Payment payment = repository.findPaymentByPartnerCodeAndOrderId(partnerCode, orderId);
 
         if (Objects.nonNull(payment)) {
             LocalDateTime dateTime = payment.getCreatedAt();
@@ -136,8 +136,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Set<PaymentQueryDTO> findByTransCodeAndStatus(String transCode, String status) {
-        return repository.findByTransCodeAndStatus(transCode, status);
+    public Set<PaymentQueryDTO> findByPartnerCodeAndOrderIdAndStatus(String partnerId, String orderId, String status) {
+        return repository.findByPartnerCodeAndOrderIdAndStatus(partnerId, orderId, status);
     }
 
     @Override

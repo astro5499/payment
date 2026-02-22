@@ -5,7 +5,6 @@ import natcash.business.dto.response.PaymentDetailResponse;
 import natcash.business.dto.response.PaymentQueryDTO;
 import natcash.business.entity.Payment;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,14 +20,14 @@ public interface PaymentService {
     Payment findById(UUID paymentId);
 
     PaymentDetailResponse findPaymentById(UUID id);
-    PaymentDetailResponse findPaymentByTransCodeId(String transCode);
+    PaymentDetailResponse findPaymentByPartnerCodeAndOrderId(String partnerCode, String orderId);
 
     void updatePaymentStatus(Payment payment);
     void expiredPaymentStatus(UUID id);
 
     Set<PaymentQueryDTO> findAllPaymentByStatus(String status);
 
-    Set<PaymentQueryDTO> findByTransCodeAndStatus(String transCode, String status);
+    Set<PaymentQueryDTO> findByPartnerCodeAndOrderIdAndStatus(String partnerId, String orderId, String status);
 
 
     void confirmPayments(UUID ids);

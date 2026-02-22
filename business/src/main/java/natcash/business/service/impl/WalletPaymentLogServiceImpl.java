@@ -3,6 +3,7 @@ package natcash.business.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import natcash.business.dto.request.ConfirmPaymentRequestDTO;
 import natcash.business.dto.request.WalletTransactionRequest;
 import natcash.business.dto.response.MessageResponse;
 import natcash.business.dto.response.PaymentQueryDTO;
@@ -18,16 +19,13 @@ import natcash.business.service.WalletPaymentLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentStatus;
 import natcash.business.utils.PaymentUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -141,8 +139,8 @@ public class WalletPaymentLogServiceImpl implements WalletPaymentLogService {
     }
 
     @Override
-    public void confirmPaymentByTransCode(String transCode) throws JsonProcessingException {
-        Set<PaymentQueryDTO> payments = paymentService.findByTransCodeAndStatus(transCode, PaymentStatus.PENDING.getValue());
+    public void confirmPayment(ConfirmPaymentRequestDTO requestDTO) throws JsonProcessingException {
+        Set<PaymentQueryDTO> payments = paymentService.findByPartnerCodeAndOrderIdAndStatus(requestDTO.getPartnerCode(), requestDTO.getOrderId(), PaymentStatus.PENDING.getValue());
 
         if (!CollectionUtils.isEmpty(payments)) {
             this.autoConfirmPayment(payments);

@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     Payment findPaymentByTransCodeAndStatus(String transCode, String status);
-    Payment findPaymentByTransCode(String transCode);
+    Payment findPaymentByPartnerCodeAndOrderId(String partnerCode, String orderId);
     @Modifying
     @Transactional
     @Query("UPDATE Payment p SET p.status = 'SUCCESS', p.updatedAt = CURRENT_TIMESTAMP " +
@@ -41,9 +41,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
                pl.ewallet_transaction_id AS transactionId
         FROM payment p
         LEFT JOIN payment_log pl ON pl.amount = p.amount and p.trans_code = pl.transaction_content
-        WHERE p.trans_code = :transCode AND p.status = :status AND pl.ewallet_transaction_id IS NOT NULL
+        WHERE p.partner_code = :partnerCode AND p.order_id = :orderId AND p.status = :status AND pl.ewallet_transaction_id IS NOT NULL
         AND CAST(pl.created_at AS date) BETWEEN CURRENT_DATE - INTERVAL '1 day' AND CURRENT_DATE
     """, nativeQuery = true)
-    Set<PaymentQueryDTO> findByTransCodeAndStatus(@Param("transCode") String transCode, @Param("status") String status);
+    Set<PaymentQueryDTO> findByPartnerCodeAndOrderIdAndStatus(@Param("partnerCode") String partnerCode, @Param("orderId") String orderId, @Param("status") String status);
 
 }

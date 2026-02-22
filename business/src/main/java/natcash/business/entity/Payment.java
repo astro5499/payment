@@ -29,6 +29,9 @@ public class Payment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "partner_code")
+    private String partnerCode;
+
     @Column(name = "from_partner", nullable = false)
     private String fromPartner;
 

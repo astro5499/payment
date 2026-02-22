@@ -2,6 +2,7 @@ package natcash.business.restful.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.log4j.Log4j2;
+import natcash.business.dto.request.ConfirmPaymentRequestDTO;
 import natcash.business.dto.request.WalletTransactionRequest;
 import natcash.business.dto.response.PaymentDetailResponse;
 import natcash.business.dto.response.RequestResponseDTO;
@@ -49,9 +50,9 @@ public class PaymentController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping("/confirm/{transCode}")
-	public ResponseEntity<Void> confirmPayment(@PathVariable String transCode) throws JsonProcessingException {
-		walletPaymentLogService.confirmPaymentByTransCode(transCode);
+	@PostMapping("/confirm")
+	public ResponseEntity<Void> confirmPayment(@RequestBody ConfirmPaymentRequestDTO requestDTO) throws JsonProcessingException {
+		walletPaymentLogService.confirmPayment(requestDTO);
 
 	    return new ResponseEntity<>(HttpStatus.CREATED);
 	}
@@ -62,8 +63,8 @@ public class PaymentController {
 	}
 
 	@GetMapping
-	public ResponseEntity<PaymentDetailResponse> getPaymentDetailsByTransCode(@RequestParam(name = "transCode") String transCode) {
-		return ResponseEntity.ok(paymentService.findPaymentByTransCodeId(transCode));
+	public ResponseEntity<PaymentDetailResponse> getPaymentDetailsByPartnerCodeAndOrderId(@RequestParam(name = "partnerCode") String partnerCode, @RequestParam(name = "orderId") String orderId) {
+		return ResponseEntity.ok(paymentService.findPaymentByPartnerCodeAndOrderId(partnerCode, orderId));
 	}
 
     @PostMapping("/transaction")
