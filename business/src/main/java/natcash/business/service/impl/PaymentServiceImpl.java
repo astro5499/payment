@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.persistence.EntityExistsException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
@@ -36,18 +37,25 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public Payment createPayment(PaymentRequestDTO requestDTO, String finAccount, String transCode) {
-        Payment payment = new Payment();
-        payment.setId(UUID.randomUUID());
-        payment.setOrderId(requestDTO.getOrderNumber());
-        payment.setAmount(requestDTO.getAmount());
-        payment.setFromPartner(requestDTO.getUsername());
-        payment.setToAccount(finAccount);
-        payment.setStatus(PaymentStatus.PENDING.getValue());
-        payment.setCreatedAt(LocalDateTime.now());
-        payment.setUpdatedAt(LocalDateTime.now());
-        payment.setTransCode(transCode);
-        payment.setLanguage(ObjectUtils.isEmpty(requestDTO.getLanguage()) ? "en" : requestDTO.getLanguage().trim().toLowerCase());
-        return repository.save(payment);
+        Payment payment = repository.findPaymentByPartnerCodeAndOrderId(requestDTO.getPartnerCode(), requestDTO.getOrderNumber());
+
+        if (Objects.nonNull(payment)) {
+            throw new EntityExistsException("already existed order with this partner code and order number!");
+        }
+
+        Payment entity = new Payment();
+        entity.setId(UUID.randomUUID());
+        entity.setOrderId(requestDTO.getOrderNumber());
+        entity.setAmount(requestDTO.getAmount());
+        entity.setPartnerCode(requestDTO.getPartnerCode());
+        entity.setFromPartner(requestDTO.getUsername());
+        entity.setToAccount(finAccount);
+        entity.setStatus(PaymentStatus.PENDING.getValue());
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        entity.setTransCode(transCode);
+        entity.setLanguage(ObjectUtils.isEmpty(requestDTO.getLanguage()) ? "en" : requestDTO.getLanguage().trim().toLowerCase());
+        return repository.save(entity);
     }
 
     public void updateTransaction(String orderId, String status) {

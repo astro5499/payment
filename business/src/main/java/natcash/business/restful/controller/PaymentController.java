@@ -11,6 +11,7 @@ import natcash.business.service.WalletPaymentLogService;
 import natcash.business.utils.ErrorCode;
 import natcash.business.utils.PaymentUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -40,6 +41,9 @@ public class PaymentController {
     @Autowired
     WalletPaymentLogService walletPaymentLogService;
 
+	@Value("${payment.isMock}")
+	private boolean isMock;
+
 	@PostMapping("/init-payment")
 	public ResponseEntity<Map<String, String>> initPayment(@RequestBody Map<String, Object> request) {
 		Double amount = Double.valueOf(request.get("amount").toString());
@@ -52,9 +56,13 @@ public class PaymentController {
 
 	@PostMapping("/confirm")
 	public ResponseEntity<Void> confirmPayment(@RequestBody ConfirmPaymentRequestDTO requestDTO) throws JsonProcessingException {
-		walletPaymentLogService.confirmPayment(requestDTO);
+		if (isMock) {
+			walletPaymentLogService.confirmPayment(requestDTO);
 
-	    return new ResponseEntity<>(HttpStatus.CREATED);
+			return new ResponseEntity<>(HttpStatus.CREATED);
+		}
+
+		return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@GetMapping("/{id}")
